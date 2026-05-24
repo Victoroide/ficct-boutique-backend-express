@@ -1,0 +1,14 @@
+node_modules
+dist
+coverage
+.git
+.gitignore
+README.md
+docs
+.env
+.env.*
+.idea
+.vscode
+.eslintcache
+# Note: dev public key under .tools/keys IS included so the image is self-contained.
+# Production should inject the key via Docker secrets or a KMS-backed mount.
