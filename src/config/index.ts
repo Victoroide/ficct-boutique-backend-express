@@ -1,6 +1,14 @@
 import 'dotenv/config';
 import { z } from 'zod';
 
+// Parse booleans from env strings safely. `z.coerce.boolean()` uses Boolean(v),
+// so the string "false" becomes `true` — a footgun that silently enabled SSE.
+// Treat only explicit truthy tokens as true; everything else (incl. "false") is false.
+const boolFromEnv = z.preprocess(
+  (v) => (typeof v === 'string' ? ['1', 'true', 'yes', 'on'].includes(v.trim().toLowerCase()) : v),
+  z.boolean(),
+);
+
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().default(8081),
@@ -21,14 +29,14 @@ const schema = z.object({
   // for HeadObject/GetObject. Falls back to S3_ENDPOINT if absent.
   S3_PUBLIC_ENDPOINT: z.string().url().optional(),
   S3_REGION: z.string().default('us-east-1'),
-  S3_FORCE_PATH_STYLE: z.coerce.boolean().default(true),
+  S3_FORCE_PATH_STYLE: boolFromEnv.default(true),
   S3_BUCKET: z.string().min(1),
   S3_ACCESS_KEY_ID: z.string().min(1),
   S3_SECRET_ACCESS_KEY: z.string().min(1),
   S3_PRESIGN_EXPIRY_SECONDS: z.coerce.number().default(900),
   // Set to "true" in environments where the bucket is backed by KMS (AWS S3
   // or MinIO+KMS). Local MinIO without KMS will reject SSE-AES256.
-  S3_SERVER_SIDE_ENCRYPTION: z.coerce.boolean().default(false),
+  S3_SERVER_SIDE_ENCRYPTION: boolFromEnv.default(false),
 
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
   RATE_LIMIT_MAX: z.coerce.number().default(120),
