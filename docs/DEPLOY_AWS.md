@@ -10,6 +10,7 @@ local/Docker.
 
 - Lambda function: `ficct-ms3-docs` (nodejs20.x, handler `dist/lambda.handler`)
 - API Gateway HTTP API → public base URL: `https://bptu80mcbk.execute-api.us-east-1.amazonaws.com`
+- Custom domain: `https://docs-api-boutique.ficct.com` (ACM cert + API Gateway custom domain mapping + Cloudflare CNAME) — verified `/health` 200
 - S3 bucket: `ficct-boutique-documents` (block-all-public-access, SSE-S3, lifecycle)
 - DB: NeonDB (`DATABASE_URL`)
 
