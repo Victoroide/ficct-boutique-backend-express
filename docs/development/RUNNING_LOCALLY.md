@@ -46,7 +46,7 @@ Authenticated calls require a token from the Go service:
 ```powershell
 $resp = curl -s -X POST http://localhost:8093/graphql `
   -H "Content-Type: application/json" `
-  -d '{\"query\":\"mutation { login(input:{email:\\\"admin@ficct.local\\\",password:\\\"Admin123!\\\"}) { accessToken } }\"}'
+  -d '{\"query\":\"mutation { login(input:{email:\\\"<admin-email>\\\",password:\\\"<admin-password>\\\"}) { accessToken } }\"}'
 $token = ($resp | ConvertFrom-Json).data.login.accessToken
 
 curl http://localhost:8081/api/v1/documents -H "Authorization: Bearer $token"
