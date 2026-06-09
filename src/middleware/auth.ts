@@ -19,7 +19,11 @@ declare module 'express-serve-static-core' {
   }
 }
 
-const publicKey: Buffer = readFileSync(config.jwt.publicKeyPath);
+// Prefer an inline PEM (production: matches the Go core prod signing key);
+// fall back to the mounted/baked key file (local/dev).
+const publicKey: string | Buffer = config.jwt.publicKeyPem && config.jwt.publicKeyPem.trim()
+  ? config.jwt.publicKeyPem.replace(/\\n/g, '\n')
+  : readFileSync(config.jwt.publicKeyPath);
 
 const verifyOptions: VerifyOptions = {
   algorithms: ['RS256'],

@@ -16,7 +16,10 @@ const schema = z.object({
 
   DATABASE_URL: z.string().min(1),
 
-  JWT_PUBLIC_KEY_PATH: z.string().min(1),
+  JWT_PUBLIC_KEY_PATH: z.string().default('/app/.tools/keys/jwt_public_dev.pem'),
+  // Production injects the public key as a PEM string (preferred over the file
+  // path) so it can match the Go core's production signing key.
+  JWT_PUBLIC_KEY_PEM: z.string().optional(),
   JWT_ISSUER: z.string().default('ficct-go'),
   JWT_AUDIENCE: z.string().default('ficct-express'),
   JWT_KEY_ID: z.string().default('dev-1'),
@@ -57,6 +60,7 @@ export const config = {
   databaseUrl: env.DATABASE_URL,
   jwt: {
     publicKeyPath: env.JWT_PUBLIC_KEY_PATH,
+    publicKeyPem: env.JWT_PUBLIC_KEY_PEM,
     issuer: env.JWT_ISSUER,
     audience: env.JWT_AUDIENCE,
     keyId: env.JWT_KEY_ID,
