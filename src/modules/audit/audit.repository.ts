@@ -28,7 +28,9 @@ export interface InsertAuditInput {
   metadata?: Record<string, unknown>;
 }
 
+/** Postgres data-access layer for the `audit_logs` table. */
 export class AuditRepository {
+  /** Insert an audit-log row and return the persisted entry. */
   async insert(input: InsertAuditInput): Promise<AuditEntry> {
     const result = await pool.query<AuditEntry>(
       `INSERT INTO audit_logs (actor_user_id, actor_email, actor_role, document_id, action, request_id, ip_address, user_agent, metadata)
@@ -49,6 +51,10 @@ export class AuditRepository {
     return result.rows[0];
   }
 
+  /**
+   * Query audit entries by optional document/action/actor filters with
+   * limit/offset paging, newest first.
+   */
   async list(filters: {
     documentId?: string;
     action?: AuditAction;

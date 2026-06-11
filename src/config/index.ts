@@ -65,7 +65,9 @@ export const config = {
     audience: env.JWT_AUDIENCE,
     keyId: env.JWT_KEY_ID,
   },
-  corsOrigins: env.CORS_ALLOWED_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean),
+  corsOrigins: env.CORS_ALLOWED_ORIGINS.split(',')
+    .map((s) => s.trim())
+    .filter(Boolean),
   s3: {
     endpoint: env.S3_ENDPOINT,
     publicEndpoint: env.S3_PUBLIC_ENDPOINT ?? env.S3_ENDPOINT,

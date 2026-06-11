@@ -17,6 +17,12 @@ export interface PresignUploadResult {
   key: string;
 }
 
+/**
+ * Generate a presigned S3/MinIO PUT URL for uploading an object.
+ * @param input - target `key`, `contentType`, and optional `contentLengthMax`.
+ * @returns the signed `url`, `method` ('PUT'), required `headers` (incl. SSE when
+ * enabled), `key`, and `expiresIn` (TTL in seconds from config.s3.presignExpirySeconds).
+ */
 export async function presignUpload(input: PresignUploadInput): Promise<PresignUploadResult> {
   const sse = config.s3.serverSideEncryption;
   const cmd = new PutObjectCommand({
@@ -41,6 +47,11 @@ export async function presignUpload(input: PresignUploadInput): Promise<PresignU
   };
 }
 
+/**
+ * Generate a presigned S3/MinIO GET URL for downloading an object.
+ * @param key - the storage key to fetch.
+ * @returns the signed `url` and `expiresIn` (TTL in seconds from config.s3.presignExpirySeconds).
+ */
 export async function presignDownload(key: string): Promise<{ url: string; expiresIn: number }> {
   const cmd = new GetObjectCommand({ Bucket: bucket, Key: key });
   const url = await getSignedUrl(s3Public, cmd, { expiresIn: config.s3.presignExpirySeconds });
@@ -54,6 +65,12 @@ export interface HeadObjectInfo {
   etag?: string;
 }
 
+/**
+ * Issue a HeadObject request to check whether an object exists and read its metadata.
+ * @param key - the storage key to inspect.
+ * @returns `{ exists, size, contentType?, etag? }`; `exists: false` when the object
+ * is missing (NotFound/NoSuchKey). Other errors are rethrown.
+ */
 export async function headObject(key: string): Promise<HeadObjectInfo> {
   try {
     const out = await s3.send(new HeadObjectCommand({ Bucket: bucket, Key: key }));

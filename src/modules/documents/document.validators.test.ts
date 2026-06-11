@@ -1,4 +1,8 @@
-import { ALLOWED_MIMES, confirmUploadSchema, createUploadRequestSchema } from './document.validators';
+import {
+  ALLOWED_MIMES,
+  confirmUploadSchema,
+  createUploadRequestSchema,
+} from './document.validators';
 
 describe('document validators', () => {
   it('accepts a valid pdf upload request', () => {

@@ -30,7 +30,9 @@ export interface InsertDocumentInput {
   metadata?: Record<string, unknown>;
 }
 
+/** Postgres data-access layer for the `documents` table. */
 export class DocumentRepository {
+  /** Insert a new pending document row and return the persisted record. */
   async insert(input: InsertDocumentInput): Promise<DocumentRow> {
     const result = await pool.query<DocumentRow>(
       `INSERT INTO documents (owner_user_id, title, description, category, storage_key, mime_type, size_bytes, metadata)
@@ -50,16 +52,24 @@ export class DocumentRepository {
     return result.rows[0];
   }
 
+  /** Look up a document by id; returns null when not found. */
   async findById(id: string): Promise<DocumentRow | null> {
     const result = await pool.query<DocumentRow>(`SELECT * FROM documents WHERE id = $1`, [id]);
     return result.rows[0] ?? null;
   }
 
+  /** Look up a document by its storage key; returns null when not found. */
   async findByStorageKey(key: string): Promise<DocumentRow | null> {
-    const result = await pool.query<DocumentRow>(`SELECT * FROM documents WHERE storage_key = $1`, [key]);
+    const result = await pool.query<DocumentRow>(`SELECT * FROM documents WHERE storage_key = $1`, [
+      key,
+    ]);
     return result.rows[0] ?? null;
   }
 
+  /**
+   * List documents matching the optional owner/category/status filters with
+   * limit/offset paging, newest first. Excludes deleted rows when no status is given.
+   */
   async list(filters: {
     ownerUserId?: string;
     category?: DocumentCategory;
@@ -91,7 +101,16 @@ export class DocumentRepository {
     return result.rows;
   }
 
-  async markActiveWithHash(id: string, sha256: string, sizeBytes: number, mimeType: string): Promise<DocumentRow | null> {
+  /**
+   * Mark a document active and persist its verified hash/size/MIME.
+   * @returns the updated row, or null when the id does not exist.
+   */
+  async markActiveWithHash(
+    id: string,
+    sha256: string,
+    sizeBytes: number,
+    mimeType: string,
+  ): Promise<DocumentRow | null> {
     const result = await pool.query<DocumentRow>(
       `UPDATE documents SET status='active', sha256=$2, size_bytes=$3, mime_type=$4, updated_at=NOW() WHERE id = $1 RETURNING *`,
       [id, sha256, sizeBytes, mimeType],
@@ -99,6 +118,10 @@ export class DocumentRepository {
     return result.rows[0] ?? null;
   }
 
+  /**
+   * Set a non-deleted document's status to deleted.
+   * @returns the updated row, or null when missing or already deleted.
+   */
   async softDelete(id: string): Promise<DocumentRow | null> {
     const result = await pool.query<DocumentRow>(
       `UPDATE documents SET status='deleted', updated_at=NOW() WHERE id = $1 AND status <> 'deleted' RETURNING *`,
@@ -107,6 +130,10 @@ export class DocumentRepository {
     return result.rows[0] ?? null;
   }
 
+  /**
+   * Restore a deleted document that has a hash (i.e. was previously active).
+   * @returns the updated row, or null when not in a restorable state.
+   */
   async restore(id: string): Promise<DocumentRow | null> {
     // Only documents that were previously active can be restored; pending
     // uploads that never completed stay pending.

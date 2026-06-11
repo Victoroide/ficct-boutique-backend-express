@@ -7,7 +7,11 @@ export const createUploadRequestSchema = z.object({
   description: z.string().max(2000).optional(),
   category: categoryEnum,
   mimeType: z.string().min(3).max(120),
-  sizeBytes: z.number().int().min(1).max(50 * 1024 * 1024),
+  sizeBytes: z
+    .number()
+    .int()
+    .min(1)
+    .max(50 * 1024 * 1024),
   metadata: z.record(z.unknown()).optional(),
 });
 
@@ -28,8 +32,14 @@ export const verifyDocumentSchema = z.object({
 });
 
 export const ALLOWED_MIMES: Record<z.infer<typeof categoryEnum>, string[]> = {
-  word: ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/msword'],
-  excel: ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'],
+  word: [
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/msword',
+  ],
+  excel: [
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel',
+  ],
   pdf: ['application/pdf'],
   image: ['image/jpeg', 'image/png', 'image/webp'],
   other: ['application/octet-stream'],

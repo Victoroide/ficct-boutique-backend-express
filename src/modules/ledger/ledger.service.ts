@@ -13,6 +13,10 @@ export interface LedgerEntry {
   recorded_at: Date;
 }
 
+/**
+ * Service maintaining the per-document, append-only SHA-256 hash ledger. Each
+ * entry chains to the previous one so any tampering is detectable.
+ */
 export class LedgerService {
   /**
    * Append a hash entry to the per-document ledger. The chain_hash is computed
@@ -48,6 +52,7 @@ export class LedgerService {
     return result.rows[0];
   }
 
+  /** Return all ledger entries for a document in append (oldest-first) order. */
   async listByDocument(documentId: string): Promise<LedgerEntry[]> {
     const result = await pool.query<LedgerEntry>(
       `SELECT * FROM hash_ledger WHERE document_id = $1 ORDER BY id ASC`,
@@ -60,7 +65,9 @@ export class LedgerService {
    * Verify that the chain has not been tampered with by recomputing chain_hash
    * for every entry from the genesis. Returns the index of the first bad row, or -1 if intact.
    */
-  async verifyChain(documentId: string): Promise<{ intact: boolean; brokenAt: number; entries: LedgerEntry[] }> {
+  async verifyChain(
+    documentId: string,
+  ): Promise<{ intact: boolean; brokenAt: number; entries: LedgerEntry[] }> {
     const entries = await this.listByDocument(documentId);
     let prevChain: string | null = null;
     for (let i = 0; i < entries.length; i++) {
